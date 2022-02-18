@@ -85,6 +85,7 @@ bool q_insert_tail(struct list_head *head, char *s)
 {
     element_t *item = q_alloc_element(s);
     list_add_tail(&item->list, head);
+    // printf("%s \n", list_entry(head->prev, element_t, list)->value);
     return true;
 }
 
@@ -128,7 +129,7 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     if (!head || list_empty(head))
         return NULL;
 
-    element_t *item = list_last_entry(head->prev, element_t, list);
+    element_t *item = list_entry(head->prev, element_t, list);
     list_del_init(head->prev);
     if (sp) {
         strncpy(sp, item->value, MIN(bufsize - 1, strlen(item->value) + 1));
@@ -188,7 +189,7 @@ bool q_delete_mid(struct list_head *head)
     }
 
     list_del(mid);
-    q_release_element(list_entry(head, element_t, list));
+    q_release_element(list_entry(mid, element_t, list));
 
     return true;
 }
