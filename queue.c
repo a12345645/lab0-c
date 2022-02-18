@@ -107,10 +107,15 @@ bool q_insert_tail(struct list_head *head, char *s)
  */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    element_t *item = list_entry(head, element_t, list);
-    list_del_init(head);
-    if (!sp && bufsize > 0)
-        strncpy(item->value, sp, MIN(bufsize - 1, strlen(item->value)));
+    if (!head || list_empty(head))
+        return NULL;
+
+    element_t *item = list_entry(head->next, element_t, list);
+    list_del_init(head->next);
+    if (sp) {
+        strncpy(sp, item->value, MIN(bufsize - 1, strlen(item->value) + 1));
+        sp[bufsize - 1] = '\0';
+    }
     return item;
 }
 
@@ -120,10 +125,15 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
  */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    element_t *item = list_last_entry(head, element_t, list);
+    if (!head || list_empty(head))
+        return NULL;
+
+    element_t *item = list_last_entry(head->prev, element_t, list);
     list_del_init(head->prev);
-    if (!sp && bufsize > 0)
-        strncpy(item->value, sp, MIN(bufsize - 1, strlen(item->value)));
+    if (sp) {
+        strncpy(sp, item->value, MIN(bufsize - 1, strlen(item->value) + 1));
+        sp[bufsize - 1] = '\0';
+    }
     return item;
 }
 
@@ -166,6 +176,20 @@ int q_size(struct list_head *head)
 bool q_delete_mid(struct list_head *head)
 {
     // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
+
+    if (!head || list_empty(head))
+        return false;
+
+    struct list_head *mid = head->next, *fast = head->next;
+
+    while (fast != head && fast->next != head) {
+        mid = mid->next;
+        fast = fast->next->next;
+    }
+
+    list_del(mid);
+    q_release_element(list_entry(head, element_t, list));
+
     return true;
 }
 
