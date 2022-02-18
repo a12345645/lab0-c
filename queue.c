@@ -344,4 +344,5 @@ void q_sort(struct list_head *head)
     }
 
     front->next = head;
+    head->prev = front;
 }
