@@ -42,7 +42,8 @@ element_t *q_alloc_element(char *s)
 struct list_head *q_new()
 {
     struct list_head *q = malloc(sizeof(struct list_head));
-    INIT_LIST_HEAD(q);
+    if (q)
+        INIT_LIST_HEAD(q);
     return q;
 }
 
@@ -73,6 +74,9 @@ bool q_insert_head(struct list_head *head, char *s)
         return false;
 
     element_t *item = q_alloc_element(s);
+    if (!item)
+        return false;
+
     list_add(&item->list, head);
     return true;
 }
@@ -90,6 +94,9 @@ bool q_insert_tail(struct list_head *head, char *s)
         return false;
 
     element_t *item = q_alloc_element(s);
+    if (!item)
+        return false;
+
     list_add_tail(&item->list, head);
     return true;
 }
