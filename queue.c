@@ -69,6 +69,9 @@ void q_free(struct list_head *l)
  */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    if (!head)
+        return false;
+
     element_t *item = q_alloc_element(s);
     list_add(&item->list, head);
     return true;
@@ -83,9 +86,11 @@ bool q_insert_head(struct list_head *head, char *s)
  */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    if (!head)
+        return false;
+
     element_t *item = q_alloc_element(s);
     list_add_tail(&item->list, head);
-    // printf("%s \n", list_entry(head->prev, element_t, list)->value);
     return true;
 }
 
@@ -248,6 +253,9 @@ void q_swap(struct list_head *head)
  */
 void q_reverse(struct list_head *head)
 {
+    if (!head || list_empty(head))
+        return;
+
     struct list_head *current = head->next, *tmp;
 
     while (current != head) {
