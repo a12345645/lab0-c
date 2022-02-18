@@ -12,16 +12,53 @@
  */
 
 /*
+ * Create element
+ * Allocate space for value and copy the string into it.
+ * Return NULL if could not allocate space.
+ */
+element_t *q_alloc_element(char *s)
+{
+    element_t *e = malloc(sizeof(element_t));
+    if (!e)
+        return NULL;
+
+    int len = strlen(s) + 1;
+    e->value = malloc(len);
+    if (!e->value) {
+        free(e);
+        return NULL;
+    }
+    INIT_LIST_HEAD(&e->list);
+
+    strncpy(e->value, s, len);
+
+    return e;
+}
+
+/*
  * Create empty queue.
  * Return NULL if could not allocate space.
  */
 struct list_head *q_new()
 {
-    return NULL;
+    struct list_head *q = malloc(sizeof(struct list_head));
+    INIT_LIST_HEAD(q);
+    return q;
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *l) {}
+void q_free(struct list_head *l)
+{
+    if (l) {
+        element_t *e, *safe;
+
+        list_for_each_entry_safe (e, safe, l, list) {
+            q_release_element(e);
+        }
+
+        free(l);
+    }
+}
 
 /*
  * Attempt to insert element at head of queue.
@@ -32,6 +69,8 @@ void q_free(struct list_head *l) {}
  */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    element_t *item = q_alloc_element(s);
+    list_add(&item->list, head);
     return true;
 }
 
@@ -44,8 +83,13 @@ bool q_insert_head(struct list_head *head, char *s)
  */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    element_t *item = q_alloc_element(s);
+    list_add_tail(&item->list, head);
     return true;
 }
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 /*
  * Attempt to remove element from head of queue.
@@ -63,7 +107,11 @@ bool q_insert_tail(struct list_head *head, char *s)
  */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    element_t *item = list_entry(head, element_t, list);
+    list_del_init(head);
+    if (!sp && bufsize > 0)
+        strncpy(item->value, sp, MIN(bufsize - 1, strlen(item->value)));
+    return item;
 }
 
 /*
@@ -72,7 +120,11 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
  */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    element_t *item = list_last_entry(head, element_t, list);
+    list_del_init(head->prev);
+    if (!sp && bufsize > 0)
+        strncpy(item->value, sp, MIN(bufsize - 1, strlen(item->value)));
+    return item;
 }
 
 /*
@@ -91,7 +143,16 @@ void q_release_element(element_t *e)
  */
 int q_size(struct list_head *head)
 {
-    return -1;
+    if (!head)
+        return 0;
+
+    struct list_head *node;
+    int count = 0;
+
+    list_for_each (node, head)
+        count++;
+
+    return count;
 }
 
 /*
@@ -138,7 +199,21 @@ void q_swap(struct list_head *head)
  * (e.g., by calling q_insert_head, q_insert_tail, or q_remove_head).
  * It should rearrange the existing ones.
  */
-void q_reverse(struct list_head *head) {}
+void q_reverse(struct list_head *head)
+{
+    struct list_head *current = head->next, *tmp;
+
+    while (current != head) {
+        tmp = current->prev;
+        current->prev = current->next;
+        current->next = tmp;
+        current = current->prev;
+    }
+
+    tmp = head->next;
+    head->next = head->prev;
+    head->prev = tmp;
+}
 
 /*
  * Sort elements of queue in ascending order
