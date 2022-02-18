@@ -267,4 +267,73 @@ void q_reverse(struct list_head *head)
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
-void q_sort(struct list_head *head) {}
+
+struct list_head *merge_sort(struct list_head *head)
+{
+    if (!head || !head->next)
+        return head;
+
+    struct list_head *slow = head, *fast = head;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    slow->prev->next = NULL;
+
+    struct list_head *left, *right, *merge, *ptr;
+    left = merge_sort(head);
+    right = merge_sort(slow);
+
+    element_t *node1, *node2;
+
+    node1 = list_entry(left, element_t, list);
+    node2 = list_entry(right, element_t, list);
+    if (strcmp(node1->value, node2->value) <= 0) {
+        merge = left;
+        left = left->next;
+    } else {
+        merge = right;
+        right = right->next;
+    }
+    ptr = merge;
+    while (left && right) {
+        node1 = list_entry(left, element_t, list);
+        node2 = list_entry(right, element_t, list);
+
+        if (strcmp(node1->value, node2->value) <= 0) {
+            ptr->next = left;
+            left = left->next;
+        } else {
+            ptr->next = right;
+            right = right->next;
+        }
+        ptr = ptr->next;
+    }
+    if (left) {
+        ptr->next = left;
+    }
+
+    if (right) {
+        ptr->next = right;
+    }
+
+    return merge;
+}
+
+void q_sort(struct list_head *head)
+{
+    if (!head || !head->next)
+        return;
+
+    head->prev->next = NULL;
+    head->next = merge_sort(head->next);
+
+    struct list_head *front = head, *behind = head->next;
+    while (behind) {
+        behind->prev = front;
+        front = behind;
+        behind = behind->next;
+    }
+
+    front->next = head;
+}
