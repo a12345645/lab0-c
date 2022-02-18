@@ -159,7 +159,6 @@ int q_size(struct list_head *head)
 
     struct list_head *node;
     int count = 0;
-
     list_for_each (node, head)
         count++;
 
@@ -209,12 +208,35 @@ bool q_delete_dup(struct list_head *head)
     return true;
 }
 
+void list_swap(struct list_head *left, struct list_head *right)
+{
+    struct list_head *tmp;
+
+    tmp = left->prev;
+    tmp->next = right;
+    right->prev = tmp;
+
+    left->prev = right;
+    left->next = right->next;
+    right->next = left;
+    left->next->prev = left;
+}
+
 /*
  * Attempt to swap every two adjacent nodes.
  */
 void q_swap(struct list_head *head)
 {
     // https://leetcode.com/problems/swap-nodes-in-pairs/
+
+    if (!head || list_empty(head))
+        return;
+
+    struct list_head *ptr = head->next;
+    while (ptr != head && ptr->next != head) {
+        list_swap(ptr, ptr->next);
+        ptr = ptr->next;
+    }
 }
 
 /*
