@@ -22,15 +22,12 @@ element_t *q_alloc_element(char *s)
     if (!e)
         return NULL;
 
-    int len = strlen(s) + 1;
-    e->value = malloc(len);
+    e->value = strdup(s);
     if (!e->value) {
         free(e);
         return NULL;
     }
     INIT_LIST_HEAD(&e->list);
-
-    strncpy(e->value, s, len);
 
     return e;
 }
@@ -126,7 +123,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     element_t *item = list_entry(head->next, element_t, list);
     list_del_init(head->next);
     if (sp) {
-        strncpy(sp, item->value, MIN(bufsize - 1, strlen(item->value) + 1));
+        strncpy(sp, item->value, bufsize - 1);
         sp[bufsize - 1] = '\0';
     }
     return item;
@@ -144,7 +141,7 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     element_t *item = list_entry(head->prev, element_t, list);
     list_del_init(head->prev);
     if (sp) {
-        strncpy(sp, item->value, MIN(bufsize - 1, strlen(item->value) + 1));
+        strncpy(sp, item->value, bufsize - 1);
         sp[bufsize - 1] = '\0';
     }
     return item;
